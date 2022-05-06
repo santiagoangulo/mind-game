@@ -5,8 +5,9 @@ interface GameProps {
 }
 
 interface Game {
-  playerCards: number[][];
+  playersHands: number[][];
   tableCards: number[];
+  gameStatus: "progress" | "finished" | "lost";
 }
 
 type GameAction = {
@@ -14,22 +15,44 @@ type GameAction = {
   playerIndex: number;
 };
 
-const gameReducer = (game: Game, action: GameAction) => {
+const gameReducer: React.Reducer<Game, GameAction> = (game, action) => {
   switch (action.type) {
     case "PlaceCard":
+      // take the card out of players hand
       const [cardToPlace, ...activePlayerCards] =
-        game.playerCards[action.playerIndex];
+        game.playersHands[action.playerIndex];
 
+      const playersHands = [
+        ...game.playersHands.slice(0, action.playerIndex), // [1,2],[3,4]
+        activePlayerCards, // [6]
+        ...game.playersHands.slice(action.playerIndex + 1), // [7,8]
+      ];
+
+      // add to the top of the cards on the table
       const tableCards = [...game.tableCards, cardToPlace];
+
+      // check if placed card is higher than any cards held by the players
+      const gameStatus = (() => {
+        const allPlayerCards = playersHands.flat();
+
+        if (allPlayerCards.length === 0) {
+          return "finished";
+        }
+
+        const isPlacedCardHigher = allPlayerCards.some((x) => cardToPlace > x);
+
+        if (isPlacedCardHigher) {
+          return "lost";
+        }
+
+        return "progress";
+      })();
 
       return {
         ...game,
+        playersHands,
         tableCards,
-        playerCards: [
-          ...game.playerCards.slice(0, action.playerIndex), // [1,2],[3,4]
-          activePlayerCards, // [6]
-          ...game.playerCards.slice(action.playerIndex + 1), // [7,8]
-        ],
+        gameStatus,
       };
   }
 };
@@ -58,13 +81,12 @@ export const Game: React.FC<GameProps> = ({ players }) => {
     []
   );
 
-  const [{ tableCards, playerCards }, dispatchGameAction] = useReducer(
-    gameReducer,
-    {
+  const [{ tableCards, playersHands, gameStatus }, dispatchGameAction] =
+    useReducer(gameReducer, {
+      gameStatus: "progress",
       tableCards: [],
-      playerCards: players.map(() => pack.splice(0, currentRound).sort()),
-    }
-  );
+      playersHands: players.map(() => pack.splice(0, currentRound).sort()),
+    });
 
   // display current tableCards
 
@@ -83,12 +105,15 @@ export const Game: React.FC<GameProps> = ({ players }) => {
   return (
     <>
       <ul>
-        <p>We are at round {currentRound}</p>
+        <p>
+          We are at round {currentRound} (gameStatus: {gameStatus})
+        </p>
 
         {players.map((name, index) => (
           <>
             <li key={name}>
-              Player {index} is {name} and they {playerCards[index].join(", ")}
+              Player {index} is {name} with cards:{" "}
+              {playersHands[index].join(", ")}
             </li>
             <button
               onClick={() =>
@@ -97,7 +122,7 @@ export const Game: React.FC<GameProps> = ({ players }) => {
                   playerIndex: index,
                 })
               }
-              disabled={playerCards[index].length === 0}
+              disabled={playersHands[index].length === 0}
             >
               Place card
             </button>
