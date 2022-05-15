@@ -1,63 +1,45 @@
-import { useMemo, useReducer, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 interface GameProps {
   players: string[];
+  onRestartGame: () => void;
 }
+
+type GameStatus = "progress" | "finished" | "lost";
+
+type Card = number;
+
+type Hand = Card[];
+type TableCards = Card[];
 
 interface Game {
-  playersHands: number[][];
-  tableCards: number[];
-  gameStatus: "progress" | "finished" | "lost";
+  playersHands: Hand[];
+  tableCards: TableCards;
+  gameStatus: GameStatus;
+  onRestartGame: () => void;
 }
 
-type GameAction = {
-  type: "PlaceCard";
-  playerIndex: number;
-};
+/** Gets a hand of sorted cards for each player in the game. */
+const makePlayersHands = (playerCount: number, roundNumber: number): Hand[] => {
+  /* I'd like to create a "shuffled" pack of cards. First the pack,
+    then the shuffled one we will be drawing cards in order to each player each round. */
 
-const gameReducer: React.Reducer<Game, GameAction> = (game, action) => {
-  switch (action.type) {
-    case "PlaceCard":
-      // take the card out of players hand
-      const [cardToPlace, ...activePlayerCards] =
-        game.playersHands[action.playerIndex];
+  const pack = Array.from(Array(100))
+    .map((_, i) => i + 1)
+    .sort(() => Math.random() - 0.5);
 
-      const playersHands = [
-        ...game.playersHands.slice(0, action.playerIndex), // [1,2],[3,4]
-        activePlayerCards, // [6]
-        ...game.playersHands.slice(action.playerIndex + 1), // [7,8]
-      ];
+  const playersHands: Hand[] = [];
 
-      // add to the top of the cards on the table
-      const tableCards = [...game.tableCards, cardToPlace];
+  for (let i = 0; i < playerCount; i++) {
+    const sortedHand = pack.splice(0, roundNumber).sort();
 
-      // check if placed card is higher than any cards held by the players
-      const gameStatus = (() => {
-        const allPlayerCards = playersHands.flat();
-
-        if (allPlayerCards.length === 0) {
-          return "finished";
-        }
-
-        const isPlacedCardHigher = allPlayerCards.some((x) => cardToPlace > x);
-
-        if (isPlacedCardHigher) {
-          return "lost";
-        }
-
-        return "progress";
-      })();
-
-      return {
-        ...game,
-        playersHands,
-        tableCards,
-        gameStatus,
-      };
+    playersHands.push(sortedHand);
   }
+
+  return playersHands;
 };
 
-export const Game: React.FC<GameProps> = ({ players }) => {
+export const Game: React.FC<GameProps> = ({ players, onRestartGame }) => {
   const numberOfRounds = useMemo(
     () =>
       ({
@@ -68,45 +50,58 @@ export const Game: React.FC<GameProps> = ({ players }) => {
     [players]
   );
 
-  const [currentRound, setCurrentRound] = useState(1);
+  onRestartGame();
 
-  /* I'd like to create a "shuffled" pack of cards. First the pack,
-    then the shuffled one we will be drawing cards in order to each player each round. */
+  const [gameStatus, setGameStatus] = useState<GameStatus>("progress");
 
-  const pack = useMemo(
-    () =>
-      Array.from(Array(100))
-        .map((_, i) => i + 1)
-        .sort(() => Math.random() - 0.5),
-    []
+  const [tableCards, setTableCards] = useState<TableCards>([]);
+
+  const [roundNumber, setRoundNumber] = useState<number>(1);
+
+  const [playersHands, setPlayersHands] = useState<Hand[]>(
+    makePlayersHands(players.length, roundNumber)
   );
 
-  const [{ tableCards, playersHands, gameStatus }, dispatchGameAction] =
-    useReducer(gameReducer, {
-      gameStatus: "progress",
-      tableCards: [],
-      playersHands: players.map(() => pack.splice(0, currentRound).sort()),
-    });
+  const placeCard = useCallback((playerIndex: number) => {
+    // take the card out of players hand
+    const [cardToPlace, ...activePlayerCards] = playersHands[playerIndex];
 
-  // display current tableCards
+    const newPlayersHands = [
+      ...playersHands.slice(0, playerIndex), // [1,2],[3,4]
+      activePlayerCards, // [6]
+      ...playersHands.slice(playerIndex + 1), // [7,8]
+    ];
 
-  // make a button for each player to call placeCard
+    // add to the top of the cards on the table
+    const newTableCards = [...tableCards, cardToPlace];
 
-  // know whether a bad card has been placed on the table
-  // then, display message saying you lose
+    // check if placed card is higher than any cards held by the players
+    const gameStatus = (() => {
+      const allPlayerCards = playersHands.flat();
 
-  /* Randomize array in-place using Durstenfeld shuffle algorithm */
+      if (allPlayerCards.length === 0) {
+        return "finished";
+      }
 
-  /* 
-  For current round R assign the first cards to each of the P players.
-  Then all cards are returned to the pack before progressing to the next round.
-  */
+      const isPlacedCardHigher = allPlayerCards.some((x) => cardToPlace > x);
+
+      if (isPlacedCardHigher) {
+        return "lost";
+      }
+
+      return "progress";
+    })();
+
+    setPlayersHands(newPlayersHands);
+    setTableCards(newTableCards);
+    setGameStatus(gameStatus);
+  }, []);
 
   return (
     <>
       <ul>
         <p>
-          We are at round {currentRound} (gameStatus: {gameStatus})
+          We are at round {roundNumber} (gameStatus: {gameStatus})
         </p>
 
         {players.map((name, index) => (
@@ -116,12 +111,7 @@ export const Game: React.FC<GameProps> = ({ players }) => {
               {playersHands[index].join(", ")}
             </li>
             <button
-              onClick={() =>
-                dispatchGameAction({
-                  type: "PlaceCard",
-                  playerIndex: index,
-                })
-              }
+              onClick={() => placeCard(index)}
               disabled={playersHands[index].length === 0}
             >
               Place card
@@ -134,6 +124,24 @@ export const Game: React.FC<GameProps> = ({ players }) => {
       <ul>
         <li>The cards on the table are: {tableCards.join(", ")}</li>
       </ul>
+
+      <button
+        // onClick={() =>
+        //   // dispatchGameAction({
+        //   //   type: "PlaceCard",
+        //   //   playerIndex: index,
+        //   // })
+        // }
+        disabled={gameStatus !== "finished"}
+      >
+        Next Round
+      </button>
+      <button
+        // Let's go again to SetupGame!!!
+        disabled={gameStatus !== "lost"}
+      >
+        Start New Game
+      </button>
     </>
   );
 };

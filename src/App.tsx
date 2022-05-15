@@ -12,7 +12,10 @@ const App: React.FC = () => {
   return (
     <>
       {hasGameStarted ? (
-        <Game players={players} />
+        <Game
+          players={players}
+          onRestartGame={() => setHasGameStarted(false)}
+        />
       ) : (
         <SetupGame
           players={players}
