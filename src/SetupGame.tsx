@@ -62,7 +62,15 @@ export const SetupGame: React.FC<SetupGameProps> = ({
         </button>
       </p>
       <p>
-        {hasEnoughPlayers && <button onClick={onStartGame}>Start Game</button>}
+        {hasEnoughPlayers && (
+          <button
+            onClick={() => {
+              onStartGame();
+            }}
+          >
+            Start Game
+          </button>
+        )}
       </p>
     </>
   );

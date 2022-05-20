@@ -50,8 +50,6 @@ export const Game: React.FC<GameProps> = ({ players, onRestartGame }) => {
     [players]
   );
 
-  onRestartGame();
-
   const [gameStatus, setGameStatus] = useState<GameStatus>("progress");
 
   const [tableCards, setTableCards] = useState<TableCards>([]);
