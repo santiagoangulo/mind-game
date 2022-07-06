@@ -7,7 +7,7 @@ import { SetupGame } from "./SetupGame";
 const App: React.FC = () => {
   const [hasGameStarted, setHasGameStarted] = useState<boolean>(false);
 
-  const [players, setPlayers] = useState<string[]>(["James", "Santi"]);
+  const [players, setPlayers] = useState<string[]>(["James", "Santi", "Kamil"]);
 
   return (
     <>

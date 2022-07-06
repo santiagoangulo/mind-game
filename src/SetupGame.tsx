@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, Fragment } from "react";
 
 interface SetupGameProps {
   players: string[];
@@ -15,7 +15,7 @@ export const SetupGame: React.FC<SetupGameProps> = ({
 
   const hasMaxPlayers = useMemo(() => players.length >= 4, [players]);
 
-  const hasEnoughPlayers = useMemo(() => players.length > 1, [players]);
+  const hasEnoughPlayers = useMemo(() => players.length >= 2, [players]);
 
   const addPlayerName = () => {
     if (hasMaxPlayers) {
@@ -34,10 +34,11 @@ export const SetupGame: React.FC<SetupGameProps> = ({
     <>
       <ul>
         {players.map((name, index) => (
-          <>
-            <li key={name}>{name}</li>
+          <li key={name}>
+            <span>{name}</span>
+
             <button onClick={() => removePlayerName(index)}>(x)</button>
-          </>
+          </li>
         ))}
       </ul>
 
