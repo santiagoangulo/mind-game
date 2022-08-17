@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-type GameStatus = "progress" | "finished" | "lost";
+type GameStatus = "progress" | "round-finished" | "game-finished" | "game-lost";
 
 type Card = number;
 
@@ -43,7 +43,7 @@ export const Game: React.FC<GameProps> = ({ players, onRestartGame }) => {
     [players]
   );
 
-  const [gameStatus, setGameStatus] = useState<GameStatus>("progress");
+  const [numberLives, setNumberLives] = useState<number>(players.length);
 
   const [tableCards, setTableCards] = useState<TableCards>([]);
 
@@ -53,14 +53,46 @@ export const Game: React.FC<GameProps> = ({ players, onRestartGame }) => {
     makePlayersHands(players.length, roundNumber)
   );
 
-  const canProceedRound =
-    gameStatus === "progress" &&
-    roundNumber < maxRoundCount &&
-    playersHands.every((hand) => hand.length === 0);
+  /** Whether the last placed card is high than any held card. */
+  const isLastCardWrong: boolean = useMemo(() => {
+    if (tableCards.length === 0) {
+      return false;
+    }
 
+    const lastCardPlaced = tableCards[tableCards.length - 1];
+
+    return playersHands.flat().some((x) => x < lastCardPlaced);
+  }, [tableCards, playersHands]);
+
+  // when a card is incorrectly placed, the team loses a life
   useEffect(() => {
-    console.log({ canProceedRound });
-  }, [canProceedRound]);
+    if (isLastCardWrong) {
+      setNumberLives(numberLives - 1);
+    }
+  }, [isLastCardWrong]);
+
+  const gameStatus = useMemo(() => {
+    if (tableCards.length === 0) {
+      return "progress";
+    }
+
+    if (numberLives === -1) {
+      return "game-lost";
+    }
+
+    const allPlayerCards = playersHands.flat();
+
+    // when all cards have been placed, the round is finished
+    if (allPlayerCards.length === 0) {
+      return roundNumber < maxRoundCount ? "round-finished" : "game-finished";
+    }
+
+    if (isLastCardWrong) {
+      return "round-finished";
+    }
+
+    return "progress";
+  }, [playersHands, roundNumber, maxRoundCount, tableCards, numberLives]);
 
   const placeCard = (playerIndex: number) => {
     // take the card out of players hand
@@ -75,26 +107,8 @@ export const Game: React.FC<GameProps> = ({ players, onRestartGame }) => {
     // add to the top of the cards on the table
     const newTableCards = [...tableCards, cardToPlace];
 
-    // check if placed card is higher than any cards held by the players
-    const gameStatus = (() => {
-      const allPlayerCards = playersHands.flat();
-
-      if (allPlayerCards.length === 0) {
-        return "finished";
-      }
-
-      const isPlacedCardHigher = allPlayerCards.some((x) => cardToPlace > x);
-
-      if (isPlacedCardHigher) {
-        return "lost";
-      }
-
-      return "progress";
-    })();
-
     setPlayersHands(newPlayersHands);
     setTableCards(newTableCards);
-    setGameStatus(gameStatus);
   };
 
   const nextRound = () => {
@@ -121,7 +135,9 @@ export const Game: React.FC<GameProps> = ({ players, onRestartGame }) => {
             </li>
             <button
               onClick={() => placeCard(index)}
-              disabled={playersHands[index].length === 0}
+              disabled={
+                gameStatus !== "progress" || playersHands[index].length === 0
+              }
             >
               Place card
             </button>
@@ -129,20 +145,17 @@ export const Game: React.FC<GameProps> = ({ players, onRestartGame }) => {
         ))}
         <li>This game has {players.length} players</li>
         <li>This game has {maxRoundCount} rounds</li>
+        <li>{Math.max(0, numberLives)} lives remaining</li>
       </ul>
       <ul>
         <li>The cards on the table are: {tableCards.join(", ")}</li>
       </ul>
 
-      <button onClick={nextRound} disabled={!canProceedRound}>
+      <button onClick={nextRound} disabled={gameStatus !== "round-finished"}>
         Next Round
       </button>
 
-      <button
-        // Let's go again to SetupGame!!!
-        onClick={onRestartGame}
-        disabled={gameStatus !== "lost"}
-      >
+      <button onClick={onRestartGame} disabled={gameStatus !== "game-lost"}>
         Start New Game
       </button>
     </>
