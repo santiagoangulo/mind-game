@@ -1,4 +1,20 @@
-import React, { useMemo, useState, Fragment } from "react";
+import React, { useMemo, useState } from "react";
+import {
+  IconButton,
+  Button,
+  Text,
+  VStack,
+  HStack,
+  Input,
+  Center,
+  Stack,
+  Heading,
+  Container,
+  Box,
+  InputGroup,
+  InputRightElement,
+} from "@chakra-ui/react";
+import { AddIcon, DeleteIcon } from "@chakra-ui/icons";
 
 interface SetupGameProps {
   players: string[];
@@ -31,48 +47,66 @@ export const SetupGame: React.FC<SetupGameProps> = ({
   };
 
   return (
-    <>
-      <ul>
-        {players.map((name, index) => (
-          <li key={name}>
-            <span>{name}</span>
+    <VStack h="100vh" py={20} background="teal.400" gap={5}>
+      <Heading size="2xl" color="white">
+        The Mind 🧠
+      </Heading>
 
-            <button onClick={() => removePlayerName(index)}>(x)</button>
-          </li>
-        ))}
-      </ul>
+      <Box w={400} rounded={10} p={5} bgColor="white" shadow="lg">
+        <VStack rowGap={5} alignItems="start">
+          <VStack gap={3} alignItems="start">
+            {players.map((name, index) => (
+              <HStack key={name} gap={3}>
+                <Text>{name}</Text>
 
-      <input
-        type="text"
-        value={playerNameInput}
-        onInput={(e) => setPlayerNameInput(e.currentTarget.value.trim())}
-        disabled={hasMaxPlayers}
-      />
-      <p>
-        <button onClick={addPlayerName} disabled={hasMaxPlayers}>
-          Add
-        </button>
+                <IconButton
+                  icon={<DeleteIcon />}
+                  aria-label="Remove player"
+                  onClick={() => removePlayerName(index)}
+                />
+              </HStack>
+            ))}
+          </VStack>
 
-        <button
-          onClick={() => {
-            setPlayers([]);
-          }}
-          disabled={players.length === 0}
-        >
-          Clear Player List
-        </button>
-      </p>
-      <p>
-        {hasEnoughPlayers && (
-          <button
-            onClick={() => {
-              onStartGame();
-            }}
-          >
-            Start Game
-          </button>
-        )}
-      </p>
-    </>
+          {/* <InputGroup size="md">
+            <Input
+              pr="4.5rem"
+              type={show ? "text" : "password"}
+              placeholder="Enter password"
+            />
+            <InputRightElement width="4.5rem">
+              <Button h="1.75rem" size="sm" onClick={handleClick}>
+                {show ? "Hide" : "Show"}
+              </Button>
+            </InputRightElement>
+          </InputGroup> */}
+
+          <InputGroup gap={2} flexDirection="row" alignItems="baseline">
+            <Input
+              placeholder="Player Name"
+              value={playerNameInput}
+              onInput={(e) => setPlayerNameInput(e.currentTarget.value.trim())}
+              disabled={hasMaxPlayers}
+            />
+
+            <InputRightElement>
+              <IconButton
+                size="sm"
+                icon={<AddIcon />}
+                onClick={addPlayerName}
+                disabled={hasMaxPlayers}
+                aria-label="Add Player"
+              />
+            </InputRightElement>
+          </InputGroup>
+
+          {hasEnoughPlayers && (
+            <Button colorScheme="teal" variant="solid" onClick={onStartGame}>
+              Start Game
+            </Button>
+          )}
+        </VStack>
+      </Box>
+    </VStack>
   );
 };

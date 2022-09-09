@@ -1,4 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
+import {
+  Heading,
+  Button,
+  Text,
+  VStack,
+  HStack,
+  Center,
+  Tag,
+} from "@chakra-ui/react";
 
 type GameStatus = "progress" | "round-finished" | "game-finished" | "game-lost";
 
@@ -121,43 +130,81 @@ export const Game: React.FC<GameProps> = ({ players, onRestartGame }) => {
   };
 
   return (
-    <>
-      <ul>
-        <p>
-          We are at round {roundNumber} (gameStatus: {gameStatus})
-        </p>
-
-        {players.map((name, index) => (
-          <div key={name}>
-            <li>
-              Player {index} is {name} with cards:{" "}
-              {playersHands[index].join(", ")}
-            </li>
-            <button
-              onClick={() => placeCard(index)}
-              disabled={
-                gameStatus !== "progress" || playersHands[index].length === 0
-              }
+    <Center py={10}>
+      <VStack maxW={500} rowGap={5} alignItems="start" rounded={5}>
+        <VStack gap={3} alignItems="start"></VStack>
+        <Heading size="md">
+          Round {roundNumber} - (Game Status: {gameStatus})
+        </Heading>
+        <ul>
+          {players.map((name, index) => (
+            <VStack
+              maxW={500}
+              // spacing={10}}
+              rowGap={2}
+              alignItems="start"
+              rounded={0}
             >
-              Place card
-            </button>
-          </div>
-        ))}
-        <li>This game has {players.length} players</li>
-        <li>This game has {maxRoundCount} rounds</li>
-        <li>{Math.max(0, numberLives)} lives remaining</li>
-      </ul>
-      <ul>
-        <li>The cards on the table are: {tableCards.join(", ")}</li>
-      </ul>
+              <div key={name}>
+                <HStack spacing={10}>
+                  <Text>
+                    Player {index + 1} is {name} with cards:{" "}
+                  </Text>
+                  <Tag colorScheme="teal" variant="subtle">
+                    {playersHands[index].join(", ")}
+                  </Tag>
+                </HStack>
+                <Button
+                  colorScheme="teal"
+                  variant="ghost"
+                  onClick={() => placeCard(index)}
+                  disabled={
+                    gameStatus !== "progress" ||
+                    playersHands[index].length === 0
+                  }
+                >
+                  Place Card
+                </Button>
+              </div>
+            </VStack>
+          ))}
+          <VStack rowGap={4}>
+            <p>
+              This game has <Tag>{players.length}</Tag> players
+            </p>
+            <p>
+              This game has <Tag>{maxRoundCount}</Tag> rounds
+            </p>
+            <p>
+              <Tag>{Math.max(0, numberLives)}</Tag> lives remaining
+            </p>
+            <p>
+              The cards on the table are: <Tag>{tableCards.join(", ")}</Tag>
+            </p>
+          </VStack>
+        </ul>
+        <HStack>
+          <Button
+            colorScheme="teal"
+            variant="solid"
+            aria-label="Next Round"
+            onClick={nextRound}
+            disabled={gameStatus !== "round-finished"}
+          >
+            Next Round
+          </Button>
 
-      <button onClick={nextRound} disabled={gameStatus !== "round-finished"}>
-        Next Round
-      </button>
-
-      <button onClick={onRestartGame} disabled={gameStatus !== "game-lost"}>
-        Start New Game
-      </button>
-    </>
+          <Button
+            colorScheme="teal"
+            variant="solid"
+            aria-label="Next Round"
+            onClick={onRestartGame}
+            disabled={gameStatus !== "game-lost"}
+          >
+            Start New Game
+          </Button>
+        </HStack>
+      </VStack>
+    </Center>
   );
 };

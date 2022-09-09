@@ -3,6 +3,7 @@ import logo from "./logo.svg";
 import "./App.css";
 import { Game } from "./Game";
 import { SetupGame } from "./SetupGame";
+import { ChakraProvider } from "@chakra-ui/react";
 
 const App: React.FC = () => {
   const [hasGameStarted, setHasGameStarted] = useState<boolean>(false);
@@ -10,7 +11,7 @@ const App: React.FC = () => {
   const [players, setPlayers] = useState<string[]>(["James", "Santi", "Kamil"]);
 
   return (
-    <>
+    <ChakraProvider>
       {hasGameStarted ? (
         <Game
           players={players}
@@ -23,7 +24,7 @@ const App: React.FC = () => {
           onStartGame={() => setHasGameStarted(true)}
         />
       )}
-    </>
+    </ChakraProvider>
   );
 };
 
