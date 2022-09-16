@@ -6,15 +6,14 @@ import {
   VStack,
   HStack,
   Input,
-  Center,
-  Stack,
-  Heading,
-  Container,
   Box,
   InputGroup,
   InputRightElement,
+  StackDivider,
+  useColorMode,
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon } from "@chakra-ui/icons";
+import { modalColor } from "./utils";
 
 interface SetupGameProps {
   players: string[];
@@ -27,14 +26,15 @@ export const SetupGame: React.FC<SetupGameProps> = ({
   setPlayers,
   onStartGame,
 }) => {
+  const { colorMode } = useColorMode();
+
   const [playerNameInput, setPlayerNameInput] = useState<string>("");
 
+  const hasMinPlayers = useMemo(() => players.length >= 2, [players]);
   const hasMaxPlayers = useMemo(() => players.length >= 4, [players]);
 
-  const hasEnoughPlayers = useMemo(() => players.length >= 2, [players]);
-
   const addPlayerName = () => {
-    if (hasMaxPlayers) {
+    if (!playerNameInput || hasMaxPlayers) {
       return;
     }
 
@@ -47,66 +47,59 @@ export const SetupGame: React.FC<SetupGameProps> = ({
   };
 
   return (
-    <VStack h="100vh" py={20} background="teal.400" gap={5}>
-      <Heading size="2xl" color="white">
-        The Mind 🧠
-      </Heading>
+    <VStack
+      w="sm"
+      p={5}
+      bgColor={modalColor(colorMode, "white", "whiteAlpha.300")}
+      shadow="lg"
+      rounded={10}
+      borderWidth={1}
+      rowGap={8}
+      alignItems="start"
+    >
+      <VStack w="full" alignItems="start" divider={<StackDivider />}>
+        {players.map((name, index) => (
+          <HStack key={name} w="full" justifyContent="space-between">
+            <Text fontWeight="medium">{name}</Text>
 
-      <Box w={400} rounded={10} p={5} bgColor="white" shadow="lg">
-        <VStack rowGap={5} alignItems="start">
-          <VStack gap={3} alignItems="start">
-            {players.map((name, index) => (
-              <HStack key={name} gap={3}>
-                <Text>{name}</Text>
-
-                <IconButton
-                  icon={<DeleteIcon />}
-                  aria-label="Remove player"
-                  onClick={() => removePlayerName(index)}
-                />
-              </HStack>
-            ))}
-          </VStack>
-
-          {/* <InputGroup size="md">
-            <Input
-              pr="4.5rem"
-              type={show ? "text" : "password"}
-              placeholder="Enter password"
+            <IconButton
+              aria-label="Remove player"
+              icon={<DeleteIcon />}
+              variant="ghost"
+              onClick={() => removePlayerName(index)}
             />
-            <InputRightElement width="4.5rem">
-              <Button h="1.75rem" size="sm" onClick={handleClick}>
-                {show ? "Hide" : "Show"}
-              </Button>
-            </InputRightElement>
-          </InputGroup> */}
+          </HStack>
+        ))}
+      </VStack>
 
-          <InputGroup gap={2} flexDirection="row" alignItems="baseline">
-            <Input
-              placeholder="Player Name"
-              value={playerNameInput}
-              onInput={(e) => setPlayerNameInput(e.currentTarget.value.trim())}
-              disabled={hasMaxPlayers}
-            />
+      <InputGroup>
+        <Input
+          placeholder="Player Name"
+          value={playerNameInput}
+          onInput={(e) => setPlayerNameInput(e.currentTarget.value)}
+          onKeyUp={(e) => e.key === "Enter" && addPlayerName()}
+          isDisabled={hasMaxPlayers}
+        />
 
-            <InputRightElement>
-              <IconButton
-                size="sm"
-                icon={<AddIcon />}
-                onClick={addPlayerName}
-                disabled={hasMaxPlayers}
-                aria-label="Add Player"
-              />
-            </InputRightElement>
-          </InputGroup>
+        <InputRightElement>
+          <IconButton
+            size="sm"
+            icon={<AddIcon />}
+            onClick={addPlayerName}
+            isDisabled={!playerNameInput || hasMaxPlayers}
+            aria-label="Add Player"
+          />
+        </InputRightElement>
+      </InputGroup>
 
-          {hasEnoughPlayers && (
-            <Button colorScheme="teal" variant="solid" onClick={onStartGame}>
-              Start Game
-            </Button>
-          )}
-        </VStack>
-      </Box>
+      <Button
+        alignSelf="flex-end"
+        colorScheme="teal"
+        onClick={onStartGame}
+        isDisabled={!hasMinPlayers}
+      >
+        Start Game
+      </Button>
     </VStack>
   );
 };

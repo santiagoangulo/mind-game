@@ -5,9 +5,12 @@ import {
   Text,
   VStack,
   HStack,
-  Center,
   Tag,
+  useColorMode,
+  Icon,
 } from "@chakra-ui/react";
+import { modalColor } from "./utils";
+import { FaHeart } from "react-icons/fa";
 
 type GameStatus = "progress" | "round-finished" | "game-finished" | "game-lost";
 
@@ -41,7 +44,12 @@ interface GameProps {
   onRestartGame: () => void;
 }
 
-export const Game: React.FC<GameProps> = ({ players, onRestartGame }) => {
+export const Game: React.FC<GameProps> = ({
+  players,
+  onRestartGame: onLeaveGame,
+}) => {
+  const { colorMode } = useColorMode();
+
   const maxRoundCount = useMemo(
     () =>
       ({
@@ -52,7 +60,7 @@ export const Game: React.FC<GameProps> = ({ players, onRestartGame }) => {
     [players]
   );
 
-  const [numberLives, setNumberLives] = useState<number>(players.length);
+  const [remainingLives, setNumberLives] = useState<number>(players.length);
 
   const [tableCards, setTableCards] = useState<TableCards>([]);
 
@@ -76,16 +84,16 @@ export const Game: React.FC<GameProps> = ({ players, onRestartGame }) => {
   // when a card is incorrectly placed, the team loses a life
   useEffect(() => {
     if (isLastCardWrong) {
-      setNumberLives(numberLives - 1);
+      setNumberLives(remainingLives - 1);
     }
   }, [isLastCardWrong]);
 
-  const gameStatus = useMemo(() => {
+  const gameStatus: GameStatus = useMemo(() => {
     if (tableCards.length === 0) {
       return "progress";
     }
 
-    if (numberLives === -1) {
+    if (remainingLives === -1) {
       return "game-lost";
     }
 
@@ -101,7 +109,14 @@ export const Game: React.FC<GameProps> = ({ players, onRestartGame }) => {
     }
 
     return "progress";
-  }, [playersHands, roundNumber, maxRoundCount, tableCards, numberLives]);
+  }, [
+    playersHands,
+    roundNumber,
+    maxRoundCount,
+    tableCards,
+    remainingLives,
+    isLastCardWrong,
+  ]);
 
   const placeCard = (playerIndex: number) => {
     // take the card out of players hand
@@ -130,81 +145,71 @@ export const Game: React.FC<GameProps> = ({ players, onRestartGame }) => {
   };
 
   return (
-    <Center py={10}>
-      <VStack maxW={500} rowGap={5} alignItems="start" rounded={5}>
-        <VStack gap={3} alignItems="start"></VStack>
-        <Heading size="md">
-          Round {roundNumber} - (Game Status: {gameStatus})
-        </Heading>
-        <ul>
-          {players.map((name, index) => (
-            <VStack
-              maxW={500}
-              // spacing={10}}
-              rowGap={2}
-              alignItems="start"
-              rounded={0}
-            >
-              <div key={name}>
-                <HStack spacing={10}>
-                  <Text>
-                    Player {index + 1} is {name} with cards:{" "}
-                  </Text>
-                  <Tag colorScheme="teal" variant="subtle">
-                    {playersHands[index].join(", ")}
-                  </Tag>
-                </HStack>
-                <Button
-                  colorScheme="teal"
-                  variant="ghost"
-                  onClick={() => placeCard(index)}
-                  disabled={
-                    gameStatus !== "progress" ||
-                    playersHands[index].length === 0
-                  }
-                >
-                  Place Card
-                </Button>
-              </div>
-            </VStack>
-          ))}
-          <VStack rowGap={4}>
-            <p>
-              This game has <Tag>{players.length}</Tag> players
-            </p>
-            <p>
-              This game has <Tag>{maxRoundCount}</Tag> rounds
-            </p>
-            <p>
-              <Tag>{Math.max(0, numberLives)}</Tag> lives remaining
-            </p>
-            <p>
-              The cards on the table are: <Tag>{tableCards.join(", ")}</Tag>
-            </p>
-          </VStack>
-        </ul>
-        <HStack>
-          <Button
-            colorScheme="teal"
-            variant="solid"
-            aria-label="Next Round"
-            onClick={nextRound}
-            disabled={gameStatus !== "round-finished"}
-          >
-            Next Round
-          </Button>
+    <VStack
+      w="sm"
+      p={5}
+      bgColor={modalColor(colorMode, "white", "whiteAlpha.300")}
+      shadow="lg"
+      rounded={10}
+      borderWidth={1}
+      rowGap={5}
+      alignItems="stretch"
+    >
+      <Heading size="lg">Round {roundNumber}</Heading>
+      <Heading size="sm">{gameStatus}</Heading>
 
+      <HStack>
+        <Text fontWeight="bold">Table</Text>
+        {tableCards.map((card) => (
+          <Tag colorScheme="teal">{card}</Tag>
+        ))}
+      </HStack>
+
+      <VStack gap={3}>
+        {players.map((name, index) => (
           <Button
-            colorScheme="teal"
-            variant="solid"
-            aria-label="Next Round"
-            onClick={onRestartGame}
-            disabled={gameStatus !== "game-lost"}
+            key={index}
+            width="full"
+            onClick={() => placeCard(index)}
+            disabled={
+              gameStatus !== "progress" || playersHands[index].length === 0
+            }
           >
-            Start New Game
+            <HStack spacing={1} w="full">
+              <Text fontWeight="medium" mr="auto">
+                {name}
+              </Text>
+
+              {playersHands[index].map((card) => (
+                <Tag colorScheme="teal">{card}</Tag>
+              ))}
+            </HStack>
           </Button>
+        ))}
+
+        <HStack>
+          {remainingLives > 0 &&
+            Array.from(Array(remainingLives)).map(() => (
+              <Icon as={FaHeart} color="red" />
+            ))}
         </HStack>
       </VStack>
-    </Center>
+
+      <HStack justifyContent="space-between">
+        <Button colorScheme="teal" variant="ghost" onClick={onLeaveGame}>
+          Leave Game
+        </Button>
+
+        <Button
+          colorScheme="teal"
+          variant="solid"
+          aria-label="Next Round"
+          onClick={nextRound}
+          disabled={gameStatus !== "round-finished"}
+        >
+          Next Round
+        </Button>
+      </HStack>
+    </VStack>
   );
 };
