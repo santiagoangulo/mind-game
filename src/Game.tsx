@@ -10,7 +10,7 @@ import {
   Icon,
 } from "@chakra-ui/react";
 import { modalColor, partition } from "./utils";
-import { FaHeart } from "react-icons/fa";
+import { FaHeart, FaStar } from "react-icons/fa";
 import { produce } from "immer";
 
 type GameStatus = "progress" | "round-finished" | "game-finished" | "game-lost";
@@ -62,6 +62,8 @@ export const Game: React.FC<GameProps> = ({
   );
 
   const [remainingLives, setNumberLives] = useState<number>(players.length);
+
+  const [throwingStars, setThrowingStars] = useState<number>(1);
 
   const [tableCards, setTableCards] = useState<TableCards>([]);
 
@@ -125,6 +127,13 @@ export const Game: React.FC<GameProps> = ({
 
     return "progress";
   }, [playersHands, roundNumber, maxRoundCount, tableCards, remainingLives]);
+
+  /** The team uses a "Throwing Star" card and the lowest card of each player is discarded. */
+  const onThrowingStar = () => {
+    setThrowingStars((count) => count - 1);
+
+    // TODO: discard the lowest card for each player
+  };
 
   /** Moves the lowest value card of the specified player onto the table. */
   const placeCard = (playerIndex: number) => {
@@ -195,11 +204,26 @@ export const Game: React.FC<GameProps> = ({
           </Button>
         ))}
 
-        <HStack>
-          {remainingLives > 0 &&
-            Array.from(Array(remainingLives)).map(() => (
+        <HStack justifyContent="space-between" w="full">
+          <Button
+            disabled={gameStatus !== "progress" || throwingStars === 0}
+            colorScheme="teal"
+            bgColor="yellow.100"
+            variant="ghost"
+            aria-label="Next Round"
+            onClick={onThrowingStar}
+          >
+            <HStack>
+              <Text color="black">{throwingStars}</Text>
+              <Icon as={FaStar} color="yellow.400" />
+            </HStack>
+          </Button>
+
+          <HStack>
+            {Array.from(Array(remainingLives)).map(() => (
               <Icon as={FaHeart} color="red" />
             ))}
+          </HStack>
         </HStack>
       </VStack>
 
