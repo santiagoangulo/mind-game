@@ -19,6 +19,8 @@ type Card = number;
 
 type Hand = Card[];
 type TableCards = Card[];
+type DiscardedCards = Card[];
+type lowestCardsToDiscard = Card[];
 
 /** Gets a hand of sorted cards for each player in the game. */
 const makePlayersHands = (playerCount: number, roundNumber: number): Hand[] => {
@@ -72,6 +74,8 @@ export const Game: React.FC<GameProps> = ({
   const [playersHands, setPlayersHands] = useState<Hand[]>(
     makePlayersHands(players.length, roundNumber)
   );
+
+  const [discardedCards, setDiscardedCards] = useState<DiscardedCards>([]);
 
   // when an incorrect card has been placed, discard relevant held cards
   useEffect(() => {
@@ -132,7 +136,16 @@ export const Game: React.FC<GameProps> = ({
   const onThrowingStar = () => {
     setThrowingStars((count) => count - 1);
 
-    // TODO: discard the lowest card for each player
+    var newPlayersHands: Hand[] = [];
+    var lowestCardsToDiscard: Card[] = [];
+
+    playersHands.forEach((eachPlayer) => {
+      lowestCardsToDiscard.push(eachPlayer[0]);
+      newPlayersHands.push(eachPlayer.slice(1));
+    });
+
+    setPlayersHands(newPlayersHands);
+    setDiscardedCards(lowestCardsToDiscard);
   };
 
   /** Moves the lowest value card of the specified player onto the table. */
