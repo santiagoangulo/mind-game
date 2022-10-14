@@ -9,8 +9,9 @@ import {
   useColorMode,
   Icon,
 } from "@chakra-ui/react";
-import { modalColor } from "./utils";
-import { FaHeart } from "react-icons/fa";
+import { modalColor, partition } from "./utils";
+import { FaHeart, FaStar } from "react-icons/fa";
+import { produce } from "immer";
 
 type GameStatus = "progress" | "round-finished" | "game-finished" | "game-lost";
 
@@ -18,6 +19,8 @@ type Card = number;
 
 type Hand = Card[];
 type TableCards = Card[];
+type DiscardedCards = Card[];
+type lowestCardsToDiscard = Card[];
 
 /** Gets a hand of sorted cards for each player in the game. */
 const makePlayersHands = (playerCount: number, roundNumber: number): Hand[] => {
@@ -62,6 +65,8 @@ export const Game: React.FC<GameProps> = ({
 
   const [remainingLives, setNumberLives] = useState<number>(players.length);
 
+  const [throwingStars, setThrowingStars] = useState<number>(1);
+
   const [tableCards, setTableCards] = useState<TableCards>([]);
 
   const [roundNumber, setRoundNumber] = useState<number>(1);
@@ -70,24 +75,44 @@ export const Game: React.FC<GameProps> = ({
     makePlayersHands(players.length, roundNumber)
   );
 
-  /** Whether the last placed card is high than any held card. */
-  const isLastCardWrong: boolean = useMemo(() => {
-    if (tableCards.length === 0) {
-      return false;
-    }
+  const [discardedCards, setDiscardedCards] = useState<DiscardedCards>([]);
 
+  // when an incorrect card has been placed, discard relevant held cards
+  useEffect(() => {
     const lastCardPlaced = tableCards[tableCards.length - 1];
+    const isLastCardWrong = playersHands.flat().some((x) => x < lastCardPlaced);
 
-    return playersHands.flat().some((x) => x < lastCardPlaced);
+    if (isLastCardWrong) {
+      // decrement the number of lives
+      setNumberLives((lives) => lives - 1);
+
+      // move all held cards of lower value onto table
+
+      const discardedCards: number[] = [];
+
+      // discard relevant held cards
+      setPlayersHands(
+        produce((playersHands) => {
+          for (let i = 0; i < playersHands.length; i++) {
+            const [newHand, toDiscard] = partition(
+              playersHands[i],
+              (card) => card > lastCardPlaced
+            );
+
+            playersHands[i] = newHand;
+            discardedCards.push(...toDiscard);
+          }
+        })
+      );
+
+      // add discarded cards to table
+      setTableCards((tableCards) =>
+        [...tableCards, ...discardedCards].sort((a, b) => a - b)
+      );
+    }
   }, [tableCards, playersHands]);
 
-  // when a card is incorrectly placed, the team loses a life
-  useEffect(() => {
-    if (isLastCardWrong) {
-      setNumberLives(remainingLives - 1);
-    }
-  }, [isLastCardWrong]);
-
+  /** Infers the status of the game from the table and the cards which are being held. */
   const gameStatus: GameStatus = useMemo(() => {
     if (tableCards.length === 0) {
       return "progress";
@@ -104,29 +129,33 @@ export const Game: React.FC<GameProps> = ({
       return roundNumber < maxRoundCount ? "round-finished" : "game-finished";
     }
 
-    if (isLastCardWrong) {
-      return "round-finished";
-    }
-
     return "progress";
-  }, [
-    playersHands,
-    roundNumber,
-    maxRoundCount,
-    tableCards,
-    remainingLives,
-    isLastCardWrong,
-  ]);
+  }, [playersHands, roundNumber, maxRoundCount, tableCards, remainingLives]);
 
+  /** The team uses a "Throwing Star" card and the lowest card of each player is discarded. */
+  const onThrowingStar = () => {
+    setThrowingStars((count) => count - 1);
+
+    var newPlayersHands: Hand[] = [];
+    var lowestCardsToDiscard: Card[] = [];
+
+    playersHands.forEach((eachPlayer) => {
+      lowestCardsToDiscard.push(eachPlayer[0]);
+      newPlayersHands.push(eachPlayer.slice(1));
+    });
+
+    setPlayersHands(newPlayersHands);
+    setDiscardedCards(lowestCardsToDiscard);
+  };
+
+  /** Moves the lowest value card of the specified player onto the table. */
   const placeCard = (playerIndex: number) => {
-    // take the card out of players hand
-    const [cardToPlace, ...activePlayerCards] = playersHands[playerIndex];
+    // take the lowest value card from player
+    const cardToPlace = playersHands[playerIndex][0];
 
-    const newPlayersHands = [
-      ...playersHands.slice(0, playerIndex), // [1,2],[3,4]
-      activePlayerCards, // [6]
-      ...playersHands.slice(playerIndex + 1), // [7,8]
-    ];
+    const newPlayersHands = produce(playersHands, (draft) => {
+      draft[playerIndex].shift();
+    });
 
     // add to the top of the cards on the table
     const newTableCards = [...tableCards, cardToPlace];
@@ -135,6 +164,7 @@ export const Game: React.FC<GameProps> = ({
     setTableCards(newTableCards);
   };
 
+  /** Progresses onto next round by resetting table cards and assigning fresh cards. */
   const nextRound = () => {
     setTableCards([]);
 
@@ -187,11 +217,26 @@ export const Game: React.FC<GameProps> = ({
           </Button>
         ))}
 
-        <HStack>
-          {remainingLives > 0 &&
-            Array.from(Array(remainingLives)).map(() => (
+        <HStack justifyContent="space-between" w="full">
+          <Button
+            disabled={gameStatus !== "progress" || throwingStars === 0}
+            colorScheme="teal"
+            bgColor="yellow.100"
+            variant="ghost"
+            aria-label="Next Round"
+            onClick={onThrowingStar}
+          >
+            <HStack>
+              <Text color="black">{throwingStars}</Text>
+              <Icon as={FaStar} color="yellow.400" />
+            </HStack>
+          </Button>
+
+          <HStack>
+            {Array.from(Array(remainingLives)).map(() => (
               <Icon as={FaHeart} color="red" />
             ))}
+          </HStack>
         </HStack>
       </VStack>
 
