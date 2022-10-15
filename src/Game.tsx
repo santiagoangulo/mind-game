@@ -17,13 +17,13 @@ type GameStatus = "progress" | "round-finished" | "game-finished" | "game-lost";
 
 type Card = number;
 
-type Hand = Card[];
-type TableCards = Card[];
-type DiscardedCards = Card[];
-type lowestCardsToDiscard = Card[];
+type SetOfCards = Card[];
 
 /** Gets a hand of sorted cards for each player in the game. */
-const makePlayersHands = (playerCount: number, roundNumber: number): Hand[] => {
+const makePlayersHands = (
+  playerCount: number,
+  roundNumber: number
+): SetOfCards[] => {
   /* I'd like to create a "shuffled" pack of cards. First the pack,
     then the shuffled one we will be drawing cards in order to each player each round. */
 
@@ -31,7 +31,7 @@ const makePlayersHands = (playerCount: number, roundNumber: number): Hand[] => {
     .map((_, i) => i + 1)
     .sort(() => Math.random() - 0.5);
 
-  const playersHands: Hand[] = [];
+  const playersHands: SetOfCards[] = [];
 
   for (let i = 0; i < playerCount; i++) {
     const sortedHand = pack.splice(0, roundNumber).sort((a, b) => a - b);
@@ -65,17 +65,17 @@ export const Game: React.FC<GameProps> = ({
 
   const [remainingLives, setNumberLives] = useState<number>(players.length);
 
-  const [throwingStars, setThrowingStars] = useState<number>(1);
+  const [throwingStars, setThrowingStars] = useState<number>(3);
 
-  const [tableCards, setTableCards] = useState<TableCards>([]);
+  const [tableCards, setTableCards] = useState<SetOfCards>([]);
 
   const [roundNumber, setRoundNumber] = useState<number>(1);
 
-  const [playersHands, setPlayersHands] = useState<Hand[]>(
+  const [playersHands, setPlayersHands] = useState<SetOfCards[]>(
     makePlayersHands(players.length, roundNumber)
   );
 
-  const [discardedCards, setDiscardedCards] = useState<DiscardedCards>([]);
+  const [discardedCards, setDiscardedCards] = useState<SetOfCards>([]);
 
   // when an incorrect card has been placed, discard relevant held cards
   useEffect(() => {
@@ -114,10 +114,6 @@ export const Game: React.FC<GameProps> = ({
 
   /** Infers the status of the game from the table and the cards which are being held. */
   const gameStatus: GameStatus = useMemo(() => {
-    if (tableCards.length === 0) {
-      return "progress";
-    }
-
     if (remainingLives === -1) {
       return "game-lost";
     }
@@ -130,23 +126,33 @@ export const Game: React.FC<GameProps> = ({
     }
 
     return "progress";
-  }, [playersHands, roundNumber, maxRoundCount, tableCards, remainingLives]);
+  }, [playersHands, roundNumber, maxRoundCount, remainingLives]);
 
   /** The team uses a "Throwing Star" card and the lowest card of each player is discarded. */
   const onThrowingStar = () => {
     setThrowingStars((count) => count - 1);
 
-    var newPlayersHands: Hand[] = [];
-    var lowestCardsToDiscard: Card[] = [];
+    var newPlayersHands: SetOfCards[] = [];
+    var lowestCardsToDiscard: Card[] = discardedCards;
 
     playersHands.forEach((eachPlayer) => {
-      lowestCardsToDiscard.push(eachPlayer[0]);
-      newPlayersHands.push(eachPlayer.slice(1));
+      // Address bug when a player might have no cards.
+      if (eachPlayer.length === 0) {
+        newPlayersHands.push([]);
+        return;
+      }
+
+      const [lowestCard, ...remainingCards] = eachPlayer;
+
+      lowestCardsToDiscard.push(lowestCard);
+      newPlayersHands.push(remainingCards);
     });
 
     setPlayersHands(newPlayersHands);
-    setDiscardedCards(lowestCardsToDiscard);
+    setDiscardedCards(lowestCardsToDiscard.sort(ordNumber));
   };
+
+  const ordNumber = (a: number, b: number) => a - b;
 
   /** Moves the lowest value card of the specified player onto the table. */
   const placeCard = (playerIndex: number) => {
@@ -167,6 +173,7 @@ export const Game: React.FC<GameProps> = ({
   /** Progresses onto next round by resetting table cards and assigning fresh cards. */
   const nextRound = () => {
     setTableCards([]);
+    setDiscardedCards([]);
 
     const nextRoundNumber = roundNumber + 1;
 
@@ -239,7 +246,11 @@ export const Game: React.FC<GameProps> = ({
           </HStack>
         </HStack>
       </VStack>
-
+      <Text fontWeight="bold">Discarded Cards</Text>
+      {discardedCards.map((card) => (
+        <Tag colorScheme="teal">{card}</Tag>
+      ))}
+      <HStack></HStack>
       <HStack justifyContent="space-between">
         <Button colorScheme="teal" variant="ghost" onClick={onLeaveGame}>
           Leave Game
