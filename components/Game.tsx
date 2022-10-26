@@ -9,7 +9,7 @@ import {
   useColorMode,
   Icon,
 } from "@chakra-ui/react";
-import { modalColor, partition } from "./utils";
+import { modalColor, partition } from "../utils";
 import { FaHeart, FaStar } from "react-icons/fa";
 import { produce } from "immer";
 

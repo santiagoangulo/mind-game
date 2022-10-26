@@ -13,7 +13,7 @@ import {
   useColorMode,
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon } from "@chakra-ui/icons";
-import { modalColor } from "./utils";
+import { modalColor } from "../utils";
 
 interface SetupGameProps {
   players: string[];

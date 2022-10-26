@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Game } from "./Game";
-import { SetupGame } from "./SetupGame";
+import { Game } from "../components/Game";
+import { SetupGame } from "../components/SetupGame";
+
 import {
   Center,
   Heading,
