@@ -11,6 +11,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { MoonIcon, SunIcon } from "@chakra-ui/icons";
+import { trpc } from "../utils/trpc";
 
 const App: React.FC = () => {
   useEffect(() => {
@@ -29,11 +30,22 @@ const App: React.FC = () => {
     "Switch to light mode"
   );
 
+  const helloText = trpc.hello.useQuery({
+    text: "Santi",
+  });
+
+  if (!helloText.data) {
+    return null;
+  }
+
   return (
     <Center minH="100vh" w="100vw" py={10} px={5}>
       <VStack gap={5} direction="column">
         <Heading size="2xl" color="white">
           The Mind 🧠
+        </Heading>
+        <Heading size="2xl" color="white">
+          {helloText.data.greeting}
         </Heading>
         {hasGameStarted ? (
           <Game
