@@ -175,7 +175,18 @@ export const Game: React.FC<GameProps> = ({
     setTableCards([]);
     setDiscardedCards([]);
 
+    let throwingStarAwarded: Array<number> = [2, 5, 8];
+    let lifeAwarded: Array<number> = [3, 6, 9];
+
     const nextRoundNumber = roundNumber + 1;
+
+    if (throwingStarAwarded.includes(nextRoundNumber)) {
+      setThrowingStars((count) => count + 1);
+    }
+
+    if (lifeAwarded.includes(nextRoundNumber)) {
+      setNumberLives((count) => count + 1);
+    }
 
     setRoundNumber(nextRoundNumber);
     setPlayersHands(makePlayersHands(players.length, nextRoundNumber));
