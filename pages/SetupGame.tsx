@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useContext, useMemo, useState } from "react";
 import {
   IconButton,
   Button,
@@ -14,18 +14,11 @@ import {
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon } from "@chakra-ui/icons";
 import { modalColor } from "../utils";
+import { useGameInitStore } from "../stores/useGameInitStore";
 
-interface SetupGameProps {
-  players: string[];
-  setPlayers: (players: string[]) => void;
-  onStartGame: () => void;
-}
+const SetupGame: React.FC = () => {
+  const { players, addPlayer, removePlayer } = useGameInitStore();
 
-export const SetupGame: React.FC<SetupGameProps> = ({
-  players,
-  setPlayers,
-  onStartGame,
-}) => {
   const { colorMode } = useColorMode();
 
   const [playerNameInput, setPlayerNameInput] = useState<string>("");
@@ -38,12 +31,8 @@ export const SetupGame: React.FC<SetupGameProps> = ({
       return;
     }
 
-    setPlayers([...players, playerNameInput]);
+    addPlayer(playerNameInput);
     setPlayerNameInput("");
-  };
-
-  const removePlayerName = (index: number) => {
-    setPlayers([...players.slice(0, index), ...players.slice(index + 1)]);
   };
 
   return (
@@ -66,7 +55,7 @@ export const SetupGame: React.FC<SetupGameProps> = ({
               aria-label="Remove player"
               icon={<DeleteIcon />}
               variant="ghost"
-              onClick={() => removePlayerName(index)}
+              onClick={() => removePlayer(index)}
             />
           </HStack>
         ))}
@@ -95,7 +84,7 @@ export const SetupGame: React.FC<SetupGameProps> = ({
       <Button
         alignSelf="flex-end"
         colorScheme="teal"
-        onClick={onStartGame}
+        onClick={() => {}}
         isDisabled={!hasMinPlayers}
       >
         Start Game
@@ -103,3 +92,5 @@ export const SetupGame: React.FC<SetupGameProps> = ({
     </VStack>
   );
 };
+
+export default SetupGame;

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Game } from "../components/Game";
-import { SetupGame } from "../components/SetupGame";
+import { SetupGame } from "../pages/SetupGame";
 
 import {
   Center,
@@ -11,8 +11,13 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { MoonIcon, SunIcon } from "@chakra-ui/icons";
+import { trpc } from "../utils/trpc";
 
-const App: React.FC = () => {
+interface LayoutProps {
+  children: React.ReactNode;
+}
+
+const App: React.FC = ({ children }) => {
   useEffect(() => {
     document.title = "Mind Game";
   });
@@ -29,24 +34,32 @@ const App: React.FC = () => {
     "Switch to light mode"
   );
 
+  const helloText = trpc.hello.useQuery({
+    text: "Santi",
+  });
+
+  if (!helloText.data) {
+    return null;
+  }
+
   return (
     <Center minH="100vh" w="100vw" py={10} px={5}>
       <VStack gap={5} direction="column">
         <Heading size="2xl" color="white">
           The Mind 🧠
         </Heading>
-        {hasGameStarted ? (
+        <Heading size="2xl" color="white">
+          {helloText.data.greeting}
+        </Heading>
+        {children}
+        {/* {hasGameStarted ? (
           <Game
             players={players}
             onRestartGame={() => setHasGameStarted(false)}
           />
         ) : (
-          <SetupGame
-            players={players}
-            setPlayers={setPlayers}
-            onStartGame={() => setHasGameStarted(true)}
-          />
-        )}
+          <SetupGame />
+        )} */}
       </VStack>
 
       <IconButton
