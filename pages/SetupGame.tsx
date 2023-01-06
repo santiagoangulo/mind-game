@@ -36,62 +36,60 @@ const SetupGame: React.FC = () => {
   };
 
   return (
-    <MyLayout>
-      <VStack
-        w="sm"
-        p={5}
-        bgColor={modalColor(colorMode, "white", "whiteAlpha.300")}
-        shadow="lg"
-        rounded={10}
-        borderWidth={1}
-        rowGap={8}
-        alignItems="start"
-      >
-        <VStack w="full" alignItems="start" divider={<StackDivider />}>
-          {players.map((name, index) => (
-            <HStack key={name} w="full" justifyContent="space-between">
-              <Text fontWeight="medium">{name}</Text>
+    <VStack
+      w="sm"
+      p={5}
+      bgColor={modalColor(colorMode, "white", "whiteAlpha.300")}
+      shadow="lg"
+      rounded={10}
+      borderWidth={1}
+      rowGap={8}
+      alignItems="start"
+    >
+      <VStack w="full" alignItems="start" divider={<StackDivider />}>
+        {players.map((name, index) => (
+          <HStack key={name} w="full" justifyContent="space-between">
+            <Text fontWeight="medium">{name}</Text>
 
-              <IconButton
-                aria-label="Remove player"
-                icon={<DeleteIcon />}
-                variant="ghost"
-                onClick={() => removePlayer(index)}
-              />
-            </HStack>
-          ))}
-        </VStack>
-
-        <InputGroup>
-          <Input
-            placeholder="Player Name"
-            value={playerNameInput}
-            onInput={(e) => setPlayerNameInput(e.currentTarget.value)}
-            onKeyUp={(e) => e.key === "Enter" && addPlayerName()}
-            isDisabled={hasMaxPlayers}
-          />
-
-          <InputRightElement>
             <IconButton
-              size="sm"
-              icon={<AddIcon />}
-              onClick={addPlayerName}
-              isDisabled={!playerNameInput || hasMaxPlayers}
-              aria-label="Add Player"
+              aria-label="Remove player"
+              icon={<DeleteIcon />}
+              variant="ghost"
+              onClick={() => removePlayer(index)}
             />
-          </InputRightElement>
-        </InputGroup>
-
-        <Button
-          alignSelf="flex-end"
-          colorScheme="teal"
-          onClick={() => {}}
-          isDisabled={!hasMinPlayers}
-        >
-          Start Game
-        </Button>
+          </HStack>
+        ))}
       </VStack>
-    </MyLayout>
+
+      <InputGroup>
+        <Input
+          placeholder="Player Name"
+          value={playerNameInput}
+          onInput={(e) => setPlayerNameInput(e.currentTarget.value)}
+          onKeyUp={(e) => e.key === "Enter" && addPlayerName()}
+          isDisabled={hasMaxPlayers}
+        />
+
+        <InputRightElement>
+          <IconButton
+            size="sm"
+            icon={<AddIcon />}
+            onClick={addPlayerName}
+            isDisabled={!playerNameInput || hasMaxPlayers}
+            aria-label="Add Player"
+          />
+        </InputRightElement>
+      </InputGroup>
+
+      <Button
+        alignSelf="flex-end"
+        colorScheme="teal"
+        onClick={() => {}}
+        isDisabled={!hasMinPlayers}
+      >
+        Start Game
+      </Button>
+    </VStack>
   );
 };
 
