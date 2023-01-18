@@ -1,23 +1,32 @@
-import React, { useEffect, useState } from "react";
-import { Game } from "../components/Game";
-import { SetupGame } from "../pages/SetupGame";
-
+import type { AppType, AppProps } from "next/app";
+import { ChakraProvider } from "@chakra-ui/react";
+import { theme } from "../theme";
+import { trpc } from "../utils/trpc";
+import ReactDOM from "react-dom/client";
+import React, { useContext, useMemo, useState, useEffect } from "react";
 import {
+  Button,
+  Text,
+  VStack,
+  HStack,
+  Input,
+  Box,
+  InputGroup,
+  InputRightElement,
+  StackDivider,
+  useColorMode,
   Center,
   Heading,
   IconButton,
-  useColorMode,
   useColorModeValue,
-  VStack,
 } from "@chakra-ui/react";
+import { AddIcon, DeleteIcon } from "@chakra-ui/icons";
+import { modalColor } from "../utils";
+import { useGameInitStore } from "../stores/useGameInitStore";
+import { Game } from "../components/Game";
 import { MoonIcon, SunIcon } from "@chakra-ui/icons";
-import { trpc } from "../utils/trpc";
 
-interface LayoutProps {
-  children: React.ReactNode;
-}
-
-const App: React.FC = ({ children }) => {
+export const Layout: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
   useEffect(() => {
     document.title = "Mind Game";
   });
@@ -51,15 +60,8 @@ const App: React.FC = ({ children }) => {
         <Heading size="2xl" color="white">
           {helloText.data.greeting}
         </Heading>
+
         {children}
-        {/* {hasGameStarted ? (
-          <Game
-            players={players}
-            onRestartGame={() => setHasGameStarted(false)}
-          />
-        ) : (
-          <SetupGame />
-        )} */}
       </VStack>
 
       <IconButton
@@ -76,12 +78,3 @@ const App: React.FC = ({ children }) => {
     </Center>
   );
 };
-
-export default App;
-
-// Add button (X) to the right of each player will remove that player from the game
-// Create a game > Changes the view to a in Game view
-// - Uses the players List to create a game.
-// - I can not modify list of players when game is created
-// - I can start the game by pressing [Start Game] button.
-// - At round i (1..n) where n depend on P = no of Players (8 till 12). Each player receives i cards.

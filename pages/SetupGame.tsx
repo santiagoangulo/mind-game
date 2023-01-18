@@ -15,8 +15,11 @@ import {
 import { AddIcon, DeleteIcon } from "@chakra-ui/icons";
 import { modalColor } from "../utils";
 import { useGameInitStore } from "../stores/useGameInitStore";
+import { useRouter } from "next/router";
 
 const SetupGame: React.FC = () => {
+  const router = useRouter();
+
   const { players, addPlayer, removePlayer } = useGameInitStore();
 
   const { colorMode } = useColorMode();
