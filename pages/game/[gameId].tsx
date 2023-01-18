@@ -9,7 +9,7 @@ import {
   useColorMode,
   Icon,
 } from "@chakra-ui/react";
-import { modalColor, partition } from "../utils";
+import { modalColor, partition } from "../../utils";
 import { FaHeart, FaStar } from "react-icons/fa";
 import { produce } from "immer";
 
@@ -42,16 +42,23 @@ const makePlayersHands = (
   return playersHands;
 };
 
-interface GameProps {
-  players: string[];
-  onRestartGame: () => void;
-}
-
-export const Game: React.FC<GameProps> = ({
-  players,
-  onRestartGame: onLeaveGame,
-}) => {
+export const GamePage = () => {
   const { colorMode } = useColorMode();
+
+  const players = [
+    {
+      id: "iqwpojcnnoal",
+      name: "James",
+    },
+    {
+      id: "oiewfjoiwjfw",
+      name: "Santi",
+    },
+    {
+      id: "oiwejfoiwjefo",
+      name: "Bogdan",
+    },
+  ];
 
   const maxRoundCount = useMemo(
     () =>
@@ -214,9 +221,9 @@ export const Game: React.FC<GameProps> = ({
       </HStack>
 
       <VStack gap={3}>
-        {players.map((name, index) => (
+        {players.map((player, index) => (
           <Button
-            key={index}
+            key={player.id}
             width="full"
             onClick={() => placeCard(index)}
             disabled={
@@ -225,7 +232,7 @@ export const Game: React.FC<GameProps> = ({
           >
             <HStack spacing={1} w="full">
               <Text fontWeight="medium" mr="auto">
-                {name}
+                {player.name}
               </Text>
 
               {playersHands[index].map((card) => (
@@ -261,12 +268,7 @@ export const Game: React.FC<GameProps> = ({
       {discardedCards.map((card) => (
         <Tag colorScheme="teal">{card}</Tag>
       ))}
-      <HStack></HStack>
-      <HStack justifyContent="space-between">
-        <Button colorScheme="teal" variant="ghost" onClick={onLeaveGame}>
-          Leave Game
-        </Button>
-
+      <HStack justifyContent="flex-end">
         <Button
           colorScheme="teal"
           variant="solid"
@@ -280,3 +282,5 @@ export const Game: React.FC<GameProps> = ({
     </VStack>
   );
 };
+
+export default GamePage;

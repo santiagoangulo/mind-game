@@ -23,7 +23,7 @@ import {
 import { AddIcon, DeleteIcon } from "@chakra-ui/icons";
 import { modalColor } from "../utils";
 import { useGameInitStore } from "../stores/useGameInitStore";
-import { Game } from "../components/Game";
+import { Game } from "./game/[gameId]";
 import { MoonIcon, SunIcon } from "@chakra-ui/icons";
 import { Layout } from "../components/Layout";
 

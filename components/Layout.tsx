@@ -23,7 +23,7 @@ import {
 import { AddIcon, DeleteIcon } from "@chakra-ui/icons";
 import { modalColor } from "../utils";
 import { useGameInitStore } from "../stores/useGameInitStore";
-import { Game } from "../components/Game";
+import { Game } from "../pages/game/[gameId]";
 import { MoonIcon, SunIcon } from "@chakra-ui/icons";
 
 export const Layout: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
@@ -43,22 +43,11 @@ export const Layout: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
     "Switch to light mode"
   );
 
-  const helloText = trpc.hello.useQuery({
-    text: "Santi",
-  });
-
-  if (!helloText.data) {
-    return null;
-  }
-
   return (
     <Center minH="100vh" w="100vw" py={10} px={5}>
       <VStack gap={5} direction="column">
         <Heading size="2xl" color="white">
           The Mind 🧠
-        </Heading>
-        <Heading size="2xl" color="white">
-          {helloText.data.greeting}
         </Heading>
 
         {children}
