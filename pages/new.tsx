@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import { Button, VStack, Input, useColorMode } from "@chakra-ui/react";
-import { modalColor } from "../utils";
+import { Button, Input, useColorMode, VStack } from "@chakra-ui/react";
 import { useRouter } from "next/router";
+import React, { useState } from "react";
+import { modalColor } from "../utils";
 
 const NewGamePage: React.FC = () => {
   const router = useRouter();
@@ -10,7 +10,7 @@ const NewGamePage: React.FC = () => {
   const [playerNameInput, setPlayerNameInput] = useState<string>("");
   const isPlayerValid = () => playerNameInput.length > 0;
 
-  const createGame = () => {
+  const createGame = async () => {
     // call the backend to create game
     // redirect host to lobby with gameId from backend
     // once joined lobby, backend can verify host is the host

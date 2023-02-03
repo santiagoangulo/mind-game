@@ -1,17 +1,17 @@
-import { useEffect, useMemo, useState } from "react";
 import {
-  Heading,
   Button,
-  Text,
-  VStack,
+  Heading,
   HStack,
-  Tag,
-  useColorMode,
   Icon,
+  Tag,
+  Text,
+  useColorMode,
+  VStack,
 } from "@chakra-ui/react";
-import { modalColor, partition } from "../../utils";
-import { FaHeart, FaStar } from "react-icons/fa";
 import { produce } from "immer";
+import { useEffect, useMemo, useState } from "react";
+import { FaHeart, FaStar } from "react-icons/fa";
+import { modalColor, partition } from "../../utils";
 
 type GameStatus = "progress" | "round-finished" | "game-finished" | "game-lost";
 
