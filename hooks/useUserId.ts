@@ -1,10 +1,23 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
-export const useUserId = (): string => {
-  const [randomId] = useState<string>(() => makeRandomId(10));
+const STORAGE_USER_ID = 'mind-game:user-id'
 
-  return randomId;
-};
+export const useUserId = (): string => useMemo(() => {
+  if (typeof window === 'undefined') {
+    return '';
+  }
+
+  const existingUserId = localStorage.getItem(STORAGE_USER_ID)
+  if (existingUserId) {
+    return existingUserId;
+  }
+
+  const userId = makeRandomId(10)
+
+  localStorage.setItem(STORAGE_USER_ID, userId);
+
+  return userId;
+}, []);
 
 const makeRandomId = (length: number): string => {
   const arr = new Uint8Array(Math.ceil(length / 2));

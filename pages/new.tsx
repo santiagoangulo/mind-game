@@ -1,6 +1,7 @@
 import { Button, Input, useColorMode, VStack } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import React, { useState } from "react";
+import { useUserId } from "../hooks/useUserId";
 import { modalColor } from "../utils";
 
 const NewGamePage: React.FC = () => {
@@ -9,6 +10,10 @@ const NewGamePage: React.FC = () => {
 
   const [playerNameInput, setPlayerNameInput] = useState<string>("");
   const isPlayerValid = () => playerNameInput.length > 0;
+
+  const userId = useUserId();
+
+  console.log(userId);
 
   const createGame = async () => {
     // call the backend to create game
@@ -29,6 +34,8 @@ const NewGamePage: React.FC = () => {
       rowGap={8}
       alignItems="start"
     >
+      {/* {userId} */}
+
       <Input
         placeholder="Player Name"
         value={playerNameInput}
