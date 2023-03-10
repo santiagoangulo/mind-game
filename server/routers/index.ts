@@ -18,7 +18,7 @@ export const appRouter = router({
   createSession: publicProcedure
     .input(
       z.object({
-        userId: z.string(),
+        userId: z.string().min(1),
         userName: z.string().nullish(),
       })
     )
@@ -69,9 +69,10 @@ export const appRouter = router({
         });
       }
 
-      const updatedSession = {
+      const updatedSession: LobbyState = {
         ...ctx.session,
         players: ctx.session.players.filter((x) => x.id !== input.targetUserId),
+        kickedPlayers: [...ctx.session.kickedPlayers, input.targetUserId],
       };
 
       sessions.set(input.sessionId, updatedSession);
@@ -119,9 +120,9 @@ export const appRouter = router({
     const getSessionDTO = (session: SessionState): SessionDTO => {
       const players = ctx.isHost
         ? session.players.map(({ id, name }) => ({
-            id,
-            name,
-          }))
+          id,
+          name,
+        }))
         : session.players.map(({ name }) => ({ name }));
 
       if (session.kind === "lobby") {
