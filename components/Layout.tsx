@@ -1,7 +1,4 @@
-import React, { useEffect, useState } from "react";
-import { Game } from "../components/Game";
-import { SetupGame } from "../components/SetupGame";
-
+import { MoonIcon, SunIcon } from "@chakra-ui/icons";
 import {
   Center,
   Heading,
@@ -10,9 +7,9 @@ import {
   useColorModeValue,
   VStack,
 } from "@chakra-ui/react";
-import { MoonIcon, SunIcon } from "@chakra-ui/icons";
+import React, { useEffect, useState } from "react";
 
-const App: React.FC = () => {
+export const Layout: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
   useEffect(() => {
     document.title = "Mind Game";
   });
@@ -35,18 +32,8 @@ const App: React.FC = () => {
         <Heading size="2xl" color="white">
           The Mind 🧠
         </Heading>
-        {hasGameStarted ? (
-          <Game
-            players={players}
-            onRestartGame={() => setHasGameStarted(false)}
-          />
-        ) : (
-          <SetupGame
-            players={players}
-            setPlayers={setPlayers}
-            onStartGame={() => setHasGameStarted(true)}
-          />
-        )}
+
+        {children}
       </VStack>
 
       <IconButton
@@ -63,12 +50,3 @@ const App: React.FC = () => {
     </Center>
   );
 };
-
-export default App;
-
-// Add button (X) to the right of each player will remove that player from the game
-// Create a game > Changes the view to a in Game view
-// - Uses the players List to create a game.
-// - I can not modify list of players when game is created
-// - I can start the game by pressing [Start Game] button.
-// - At round i (1..n) where n depend on P = no of Players (8 till 12). Each player receives i cards.

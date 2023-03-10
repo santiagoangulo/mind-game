@@ -1,11 +1,18 @@
-import type { AppProps } from "next/app";
 import { ChakraProvider } from "@chakra-ui/react";
+import { AppType } from "next/app";
+import { Layout } from "../components/Layout";
+import { useUserId } from "../hooks/useUserId";
 import { theme } from "../theme";
+import { trpc } from "../utils/trpc";
 
-export default function App({ Component, pageProps }: AppProps) {
+const App: AppType = ({ Component, pageProps }) => {
   return (
     <ChakraProvider theme={theme}>
-      <Component {...pageProps} />
+      <Layout>
+        <Component {...pageProps} />
+      </Layout>
     </ChakraProvider>
   );
-}
+};
+
+export default trpc.withTRPC(App);
